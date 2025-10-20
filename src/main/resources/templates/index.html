@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>CRM System — Requests</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <script th:src="@{/js/main.js}"></script>
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">CRM System</div>
+</header>
+
+<div class="container">
+    <div class="left">
+        <h2>Заявки</h2>
+<a href="/requests/add" class="btn btn-primary" style="margin-bottom:10px;display:inline-block;">+ Добавить заявку</a>
+        <table class="requests">
+            <thead>
+                <tr><th>User</th><th>Course</th><th>Phone</th><th>Handled</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${requests}">
+                <td th:text="${r.userName}">User</td>
+                <td>
+                    <span th:text="${r.course != null ? r.course.name : '—'}">Course</span><br/>
+                    <small th:text="${r.course != null ? r.course.price + ' USD' : ''}"></small>
+                </td>
+                <td th:text="${r.phone}">+7701...</td>
+                <td th:text="${r.handled}">false</td>
+                <td>
+                    <form th:action="@{/requests/delete}" method="post" style="display:inline-block">
+                        <input type="hidden" name="id" th:value="${r.id}" />
+                        <button class="btn btn-red" type="submit">Удалить</button>
+                    </form>
+                    <button class="btn btn-green" th:onclick="'openAssignModal(' + ${r.id} + ')'"
+                        th:if="${!r.handled}">Обработать заявку</button>
+                    <div th:if="${r.handled}">
+                        <small>Assigned:</small>
+                        <ul>
+                            <li th:each="op : ${r.operators}" th:text="${op.name + ' ' + op.surname}">Operator</li>
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="right">
+        <h3>Добавить заявку</h3>
+        <form th:action="@{/requests/add}" method="post" class="add-form">
+            <label>Имя</label><input name="userName" required />
+            <label>Телефон</label><input name="phone" required />
+            <label>Комментарий</label><textarea name="commentary"></textarea>
+            <label>Курс</label>
+            <select name="courseId" required>
+                <option th:each="c : ${courses}" th:value="${c.id}"
+                        th:text="${c.name + ' — ' + c.price + ' USD'}">Course</option>
+            </select>
+            <button class="btn btn-primary" type="submit">Добавить</button>
+        </form>
+    </div>
+</div>
+
+<!-- Assign modal -->
+<div id="assignModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeAssignModal()">&times;</span>
+        <h3>Назначить операторов</h3>
+        <form id="assignForm" th:action="@{/requests/assign}" method="post">
+            <input type="hidden" name="requestId" id="requestIdField" />
+            <div>
+                <label th:each="op : ${operators}">
+                    <input type="checkbox" name="operatorIds" th:value="${op.id}" />
+                    <span th:text="${op.name + ' ' + op.surname + ' (' + op.department + ')'}">Operator</span>
+                </label><br/>
+            </div>
+            <div style="margin-top:1rem;">
+                <button class="btn btn-primary" type="submit">Assign</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
